@@ -64,7 +64,7 @@ exports.bookFlight = async (req, res) => {
     // Find the user by email and update their bookings
     const user = await User.findOne({ email: userEmail });
     if (user) {
-      user.booking.push(booking._id);
+      user.flightbooking.push(booking._id);
       await user.save(); // Save the updated user document
     } else {
       return res.status(404).json({ message: 'User not found' });
@@ -136,7 +136,7 @@ exports.bookBus = async (req, res) => {
     // Find the user by email and update their bookings
     const user = await User.findOne({ email: userEmail });
     if (user) {
-      user.booking.push(booking._id);
+      user.busbooking.push(booking._id);
       await user.save(); // Save the updated user document
     } else {
       return res.status(404).json({ message: 'User not found' });
@@ -197,7 +197,7 @@ exports.bookTrain = async (req, res) => {
 
     const user = await User.findOne({ email: userEmail });
     if (user) {
-      user.booking.push(booking._id);
+      user.trainbooking.push(booking._id);
       await user.save(); // Save the updated user document
     } else {
       return res.status(404).json({ message: 'User not found' });
@@ -209,8 +209,46 @@ exports.bookTrain = async (req, res) => {
   }
 };
 
+exports.bookHotel = async (req, res) => {
+  try {
+    const { storedData,user} = req.body;
+
+    // console.log(storedData,user)
+
+
+    const bookingDetails = {
+      username: user.username,
+      email: user.email,
+      bookingType: 'Hotel',
+      from: storedData.place,
+      departureTime: storedData.formdata.checkInDate,
+      returnTime: storedData.formdata.checkOutDate,
+      travelerCount:storedData.formdata.personCount,
+      price: (storedData.price * storedData.formdata.bedsRequired + (storedData?.price * storedData?.formdata?.bedsRequired * storedData?.tax / 100)),
+      approved: false,
+      vehicleId:storedData._id,
+      vehicleName:storedData.name,
+    };
+
+    const booking = new Booking(bookingDetails);
+    await booking.save();
+
+    const userr = await User.findOne({ email: user.email });
+    if (userr) {
+      user.hotelbooking.push(booking._id);
+      await userr.save();
+    } else {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(201).json({ message: 'Booking created successfully', booking });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
 // Search available buses
-exports.allBooking = async (req, res) => {
+exports.allNotApprovedBooking = async (req, res) => {
   try {
     const buses = await Booking.find();
     res.status(200).json(buses);
@@ -244,6 +282,7 @@ exports.getTrain = async (req, res) => {
   try {
     const { from, to  } = req.body
     const trains = await Train.find({ from, to  });
+    // console.log(trains )
     res.status(200).json(trains);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -279,10 +318,10 @@ exports.getBusById = async (req, res) => {
   }
 };
 // get Hotel 
-exports.getHotel = async (req, res) => {
+exports.getHomeHotel = async (req, res) => {
   try {
-    const { place } = req.body
-    const hoteles = await Hotel.find({ place });
+    const { place,type } = req.body
+    const hoteles = await Hotel.find({ place,type });
     res.status(200).json(hoteles);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -298,3 +337,24 @@ exports.getBookingById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// admin approve
+exports.approveBooking = async (req,res) =>{
+  try {
+    const { id } = req.params; 
+
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      { approved: true }, 
+      { new: true } 
+    );
+
+    if (!updatedBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    return res.status(200).json({ message: 'Booking approved successfully', booking: updatedBooking });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}

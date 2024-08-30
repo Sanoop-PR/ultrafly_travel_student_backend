@@ -1,5 +1,5 @@
 const express = require('express');
-const { allBooking, bookFlight, bookBus ,bookHotel,bookTrain,getFlight,getFlightById,getTrain,getBus,getHotel ,getBookingById,getTrainById,getBusById} = require('../controller/bookingController');
+const { allNotApprovedBooking, bookFlight, bookBus ,bookHotel,bookTrain,getFlight,getFlightById,getTrain,getBus,getHomeHotel ,getBookingById,getTrainById,getBusById,approveBooking} = require('../controller/bookingController');
 const router = express.Router();
 
 // flight
@@ -16,7 +16,8 @@ router.get('/train/get/:id', getTrainById);
 
 // hotel
 // router.post('/hotel/book', bookHotel);
-router.get('/hotel/get', getHotel);
+router.post('/hotel/getHomeHotel', getHomeHotel);
+router.post('/hotel/book', bookHotel);
 
 
 // bus
@@ -27,6 +28,10 @@ router.get('/bus/get/:id', getBusById);
 
 router.get('/getBookingById/get/:id', getBookingById);
 
+// admin
+router.get('/allNotApprovedBooking/get', allNotApprovedBooking);
+
+router.put('/approve/:id', approveBooking);
 
 
 module.exports = router;

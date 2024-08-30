@@ -13,7 +13,7 @@ const bookingSchema = new mongoose.Schema(
     classType: String,
     selectedSeats: [String], // Ensure this is an array of strings
     roomNumber: Number,
-    price: Number,
+    price: String,
     approved: { type: Boolean, default: false },
     vehicleId:{type:String},
     vehicleName:String,

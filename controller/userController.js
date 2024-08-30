@@ -51,3 +51,39 @@ exports.getUser = async (req,res) =>{
         return res.status(400).json({ error: error.message });
     }
 }
+
+exports.deleteUser = async (req,res) =>{
+    try {
+        const { email } = req.body; // Extract email from request body
+        // Find and delete the user by email
+        const user = await User.findOneAndDelete({ email });
+    
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+    
+        res.status(200).json({ message: 'User deleted successfully' });
+      } catch (err) {
+        res.status(500).json({ message: 'Error deleting user', error: err.message });
+      }
+}
+
+exports.updateProfile = async (req, res) => {
+    try {
+      const { username, lastname, contactNo, gender, dob } = req.body;
+      const { email } = req.params; 
+      const updatedUser = await User.findOneAndUpdate(
+        { email }, 
+        { username, lastname, contactNo, gender, dob }, 
+        { new: true } 
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      return res.status(200).json({ message: 'Profile updated successfully', updatedUser });
+    } catch (err) {
+      return res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+  };
